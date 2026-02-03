@@ -36,3 +36,4 @@ Data will be saved locally via local storage.
 7) Edit quantity - a button next to the item will allow you to open a dialog and change the value manually
 8) Delete item - a button next to the item will allow you to delete the item. The data will be updated and the inventory page reloaded
 9) Delete inventory - a button on the page will allow you to delete the inventory. The data will be updated and the index page will be reloaded.
+10) Data validation - no two inventories with the same name. No two items in an inventory with the same name
