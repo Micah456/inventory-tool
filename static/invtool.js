@@ -2,6 +2,8 @@ let invTableEl = document.getElementById("inventory-table")
 let itemTableEl = document.getElementById("item-table")
 let delInvBtnEl
 let renInvBtnEl
+let delItemBtnEl
+let editItemBtnEl
 const mainEl = document.getElementById('main')
 const defaultAppData = {
     inventories: []
@@ -45,6 +47,52 @@ const testData = {
             ]
         }
     ]
+}
+
+function createItemListDiv(invName, invDate){
+    //Creates the ItemListDiv holding the item table
+    //invName and invDate are used to find the inv data
+    //Returns the div to append to main to display on page
+    const div = document.createElement("div")
+    div.id = "item-table-div"
+    //Create h2
+    const h2 = document.createElement("h2")
+    h2.textContent = invName
+    //Create table
+    const table = document.createElement("table")
+    table.id = "item-table"
+    //Set itemTableEl to current table made
+    itemTableEl = table
+    //Create table header row
+    const trHeader = document.createElement("tr")
+    trHeader.className = "tr-header"
+    const th1 = document.createElement("th")
+    th1.textContent = "Item Name"
+    const th2 = document.createElement("th")
+    th2.textContent = "Count"
+    trHeader.appendChild(th1)
+    trHeader.appendChild(th2)
+    //Append table header row to table
+    table.appendChild(trHeader)
+    //Get inv items
+    const inventories = JSON.parse(localStorage.getItem(appDataKey))['inventories'] //array
+    const invIndex = findIndexOfInventory(inventories, invName, invDate)
+    const items = inventories[invIndex]['items'] //array
+    //Create and append table rows to table
+    items.forEach((itemObj) => {
+        table.appendChild(createTableRowElement(itemObj, false))
+    })
+    //Add a link back to inventory list
+    const returnA = document.createElement('a')
+    returnA.href = window.location.href
+    returnA.textContent = "Return to Inventory List"
+    //Append all children elements
+    div.appendChild(h2)
+    div.appendChild(table)
+    div.appendChild(createItemListActionBtnDiv())
+    div.appendChild(returnA)
+    //Return div
+    return div
 }
 
 function createInventoryListDiv(){
@@ -111,6 +159,35 @@ function createInvListActionBtnDiv(){
     return actionBtnDiv
 }
 
+function createItemListActionBtnDiv(){
+    //Returns actionbtndiv for itemlist
+    //Create actionBtnDiv
+    const actionBtnDiv = document.createElement('div')
+    actionBtnDiv.className = "action-btn-div"
+    //Create addNewInvBtn
+    const addNewItemBtn = document.createElement('button')
+    addNewItemBtn.textContent = "Add New Item"
+    addNewItemBtn.addEventListener('click', addNewItem)
+    //Create delItemBtn
+    const delItemBtn = document.createElement('button')
+    delItemBtnEl = delItemBtn
+    delItemBtn.textContent = "Delete Item"
+    delItemBtn.addEventListener('click', deleteItem)
+    delItemBtn.disabled = true
+    //Create editItemBtn
+    const editItemBtn = document.createElement('button')
+    editItemBtnEl = editItemBtn
+    editItemBtn.textContent = "Edit Item"
+    editItemBtn.addEventListener('click', editItem)
+    editItemBtn.disabled = true
+    //Append children elements
+    actionBtnDiv.appendChild(addNewItemBtn)
+    actionBtnDiv.appendChild(delItemBtn)
+    actionBtnDiv.appendChild(editItemBtn)
+    //Return
+    return actionBtnDiv
+}
+
 function displayMain(divEl){
     mainEl.innerHTML = ""
     mainEl.appendChild(divEl)
@@ -143,6 +220,9 @@ function createTableRowElement(dataObj, inventoryTable){
     tr.addEventListener('click', (e) => {
         toggleRow(tr, inventoryTable)
     })
+    tr.addEventListener('dblclick', (e) => {
+        openInventory(tr)
+    })
     return tr
 }
 
@@ -162,6 +242,10 @@ function addNewInventory(){
         displayMain(createInventoryListDiv())
     }
     
+}
+
+function addNewItem(){
+    console.log("Creating new item - to be implemented")
 }
 
 function formatDate(date){
@@ -186,8 +270,18 @@ function deleteInventory(){
         localStorage.setItem(appDataKey, JSON.stringify(data))
         //reload
         displayMain(createInventoryListDiv())
-    }
-    
+    }  
+}
+
+function deleteItem(){
+    console.log("Implement delete item")
+}
+
+function openInventory(rowElement){
+    const invName = rowElement.firstChild.textContent
+    const invDate = rowElement.lastChild.textContent
+    console.log(`Opening inventory: ${invName} (${invDate})`)
+    displayMain(createItemListDiv(invName, invDate))
 }
 
 function findIndexOfInventory(invArray, invName, invDate){
@@ -216,6 +310,10 @@ function renameInventory(){
         //reload
         displayMain(createInventoryListDiv())
     }
+}
+
+function editItem(){
+    console.log("Edit item to be implemented")
 }
 
 function toggleRow(trElement, inventoryTable){
