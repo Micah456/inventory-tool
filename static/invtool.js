@@ -1,3 +1,5 @@
+let invTableEl = document.getElementById("inventory-table")
+//let itemTableEl = document.getElementById("item-table")
 const mainEl = document.getElementById('main')
 const defaultAppData = {
     inventories: []
@@ -52,16 +54,22 @@ function createInventoryListDiv(){
     //Create table
     const table = document.createElement("table")
     table.id = "inventory-table"
-    //Create table innerHtml
-    let tableInnerHtml = `
-        <tr class="tr-header">
-            <th>Inventory Name</th>
-            <th>Date Created</th>
-        </tr>
-    `
-    const inventories = JSON.parse(localStorage.getItem(appDataKey))['inventories']
-    tableInnerHtml += createTableRowHtml(inventories, "name", "date")
-    table.innerHTML = tableInnerHtml
+    //Create table header row
+    const trHeader = document.createElement("tr")
+    trHeader.className = "tr-header"
+    const th1 = document.createElement("th")
+    th1.textContent = "Inventory Name"
+    const th2 = document.createElement("th")
+    th2.textContent = "Date Created"
+    trHeader.appendChild(th1)
+    trHeader.appendChild(th2)
+    //Append table header row to table
+    table.appendChild(trHeader)
+    //Create and append table rows to table
+    const inventories = JSON.parse(localStorage.getItem(appDataKey))['inventories'] //array
+    inventories.forEach((invObj) => {
+        table.appendChild(createTableRowElement(invObj, "name", "date"))
+    })
     //Append all children elements
     div.appendChild(h2)
     div.appendChild(table)
@@ -102,21 +110,23 @@ function displayMain(divEl){
     mainEl.appendChild(divEl)
 }
 
-function createTableRowHtml(dataArray, header1, header2){
-    //Creates and returns html string for a table row
-    //dataArray is the array of objects containing the data
-    //The headers are the headers to access the data from the objects
-    //If false, the table is an item table
-    let html = ""
-    dataArray.forEach((obj) => {
-        html += `
-            <tr class="tr-data-row">
-                <td>${obj[header1]}</td>
-                <td>${obj[header2]}</td>
-            </tr>
-        `
-    })
-    return html
+
+function createTableRowElement(dataObj, header1, header2){
+    //Creates and returns tr element
+    //dataObj is the object containing row data
+    //The headers are the headers to access the data from the object
+
+    //Create tr element
+    const tr = document.createElement('tr')
+    tr.className = "tr-data-row"
+    //Create tds
+    const td1 = document.createElement('td')
+    td1.textContent = dataObj[header1]
+    const td2 = document.createElement('td')
+    td2.textContent = dataObj[header2]
+    tr.appendChild(td1)
+    tr.appendChild(td2)
+    return tr
 }
 
 function addNewInventory(){
