@@ -200,7 +200,22 @@ function findIndexOfInventory(invArray, invName, invDate){
 }
 
 function renameInventory(){
-    console.log("Renaming inventory.")
+    const row = findSelectedRow(true)
+    const invName = row.firstChild.textContent
+    const invDate = row.lastChild.textContent
+    const newName = (prompt(`What would you like to rename ${invName} to?`)).trim()
+    if(newName){
+        console.log(`Renaming ${invName} inventory to ${newName} `)
+        const data = JSON.parse(localStorage.getItem(appDataKey))
+        const inventories = data['inventories']
+        const invIndex = findIndexOfInventory(inventories, invName, invDate)
+        if(invIndex >= 0){
+            data['inventories'][invIndex].name = newName
+        }
+        localStorage.setItem(appDataKey, JSON.stringify(data))
+        //reload
+        displayMain(createInventoryListDiv())
+    }
 }
 
 function toggleRow(trElement, inventoryTable){
