@@ -1,5 +1,7 @@
 let invTableEl = document.getElementById("inventory-table")
-//let itemTableEl = document.getElementById("item-table")
+let itemTableEl = document.getElementById("item-table")
+let delInvBtnEl
+let renInvBtnEl
 const mainEl = document.getElementById('main')
 const defaultAppData = {
     inventories: []
@@ -54,6 +56,8 @@ function createInventoryListDiv(){
     //Create table
     const table = document.createElement("table")
     table.id = "inventory-table"
+    //Set invTableEl to current table made
+    invTableEl = table
     //Create table header row
     const trHeader = document.createElement("tr")
     trHeader.className = "tr-header"
@@ -68,7 +72,7 @@ function createInventoryListDiv(){
     //Create and append table rows to table
     const inventories = JSON.parse(localStorage.getItem(appDataKey))['inventories'] //array
     inventories.forEach((invObj) => {
-        table.appendChild(createTableRowElement(invObj, "name", "date"))
+        table.appendChild(createTableRowElement(invObj, true))
     })
     //Append all children elements
     div.appendChild(h2)
@@ -89,11 +93,13 @@ function createInvListActionBtnDiv(){
     addNewInvBtn.addEventListener('click', addNewInventory)
     //Create delInvBtn
     const delInvBtn = document.createElement('button')
+    delInvBtnEl = delInvBtn
     delInvBtn.textContent = "Delete Inventory"
     delInvBtn.addEventListener('click', deleteInventory)
     delInvBtn.disabled = true
     //Create renInvBtn
     const renInvBtn = document.createElement('button')
+    renInvBtnEl = renInvBtn
     renInvBtn.textContent = "Rename Inventory"
     renInvBtn.addEventListener('click', renameInventory)
     renInvBtn.disabled = true
@@ -111,11 +117,18 @@ function displayMain(divEl){
 }
 
 
-function createTableRowElement(dataObj, header1, header2){
+function createTableRowElement(dataObj, inventoryTable){
     //Creates and returns tr element
     //dataObj is the object containing row data
-    //The headers are the headers to access the data from the object
+    //inventoryTable bool checks if table is invtable (true)
+    //or itemTable (false)
 
+    //Set headers
+    const header1 = 'name'
+    let header2 = 'date' 
+    if(!inventoryTable){
+        header2 = 'count'
+    }
     //Create tr element
     const tr = document.createElement('tr')
     tr.className = "tr-data-row"
@@ -126,6 +139,10 @@ function createTableRowElement(dataObj, header1, header2){
     td2.textContent = dataObj[header2]
     tr.appendChild(td1)
     tr.appendChild(td2)
+    //Create eventlistener
+    tr.addEventListener('click', (e) => {
+        toggleRow(tr, inventoryTable)
+    })
     return tr
 }
 
@@ -153,11 +170,105 @@ function formatDate(date){
 }
 
 function deleteInventory(){
-    console.log("Deleting inventory.")
+    const row = findSelectedRow(true)
+    const invName = row.firstChild.textContent
+    const invDate = row.lastChild.textContent
+    if(confirm(`Are you sure you want to delete ${invName} (${invDate})?`)){
+        console.log(`Delecting inventory name: ${invName}`)
+        const data = JSON.parse(localStorage.getItem(appDataKey))
+        console.log(data)
+        const inventories = data['inventories']
+        console.log(inventories)
+        const invIndex = findIndexOfInventory(inventories, invName, invDate)
+        if(invIndex >= 0){
+            data['inventories'].splice(invIndex, 1)
+        }
+        localStorage.setItem(appDataKey, JSON.stringify(data))
+        //reload
+        displayMain(createInventoryListDiv())
+    }
+    
+}
+
+function findIndexOfInventory(invArray, invName, invDate){
+    for(let i = 0; i < invArray.length; i++){
+        if(invArray[i].name === invName && invArray[i].date === invDate){
+            return i
+        }
+    }
+    return -1
 }
 
 function renameInventory(){
     console.log("Renaming inventory.")
+}
+
+function toggleRow(trElement, inventoryTable){
+    //Deselects row if selected and vice versa
+    //If row is not selected, it deselects all  rows
+    //Then selects target row
+    //inventoryTable bool checks if it's the invTable
+    //false means it is the item table
+
+    //Check if selected
+    if(rowSelected(trElement)){ //selected
+        //Deselect
+        trElement.classList.remove("row-selected")
+        delInvBtnEl.disabled = true
+        renInvBtnEl.disabled = true
+    }
+    else{ //not selected
+        //Delesecting all other rows
+        deselectAllRows(inventoryTable)
+        trElement.classList.add("row-selected")
+        delInvBtnEl.disabled = false
+        renInvBtnEl.disabled = false
+    }
+}
+
+function rowSelected(trElement){
+    //Check if a row is selected
+    const classes = trElement.classList
+    return classes.contains("row-selected")
+}
+
+function deselectAllRows(inventoryTable){
+    let tableEl
+    if(inventoryTable){
+        tableEl = invTableEl
+    }
+    else{
+        tableEl = itemTableEl
+    }
+    const rows = tableEl.children
+    for(let row of rows){
+        const classes = row.classList
+        if(classes.contains("row-selected")){
+            classes.remove("row-selected")
+        }
+    }
+}
+
+function findSelectedRow(inventoryTable){
+    //Finds selected row in table and returns it
+    //Searches invTable if inventoryTable is true
+    //If false, searches itemTable
+    //Returns selected row or null if no rows selected
+    let tableEl
+    if(inventoryTable){
+        tableEl = invTableEl
+    }
+    else{
+        tableEl = itemTableEl
+    }
+    const rows = tableEl.children
+    for(let row of rows){
+        const classes = row.classList
+        if(classes.contains("row-selected")){
+            return row
+        }
+    }
+    return null
 }
 
 //Check Local Storage for data
@@ -169,3 +280,7 @@ if(!data){
 
 //Load inventories
 displayMain(createInventoryListDiv())
+
+//TODO use parameters to be able to load an inventory without needing a separate endpoint
+//const urlParams = new URLSearchParams(window.location.search)
+//console.log(urlParams.get('inv'))
