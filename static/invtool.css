@@ -53,18 +53,18 @@ th {
     background-color: #4cabef;
 }
 
-button {
+button, input[type="submit"] {
     background-color: #a68dea;
     border: none;
     padding: .3rem;
 }
 
-button:hover{
+button:hover, input[type="submit"]:hover{
     cursor: pointer;
     background-color: #8dc3ea;
 }
 
-button:disabled{
+button:disabled, input[type="submit"]:disabled{
     background-color: rgb(174, 174, 174);
     cursor: default
 }
@@ -74,4 +74,50 @@ button:disabled{
     display: flex;
     width: 75vw;
     justify-content: space-between;
+}
+
+#edit-item-div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: fixed;
+    top: 30%;
+    left: 25%;
+    border: solid, 2px, #7c5ddb;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.22), 0 6px 20px 0 rgba(0, 0, 0, 0.22);
+}
+
+#edit-item-form{
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    align-items: center;
+    width: 50vw;
+    background-color: #a68dea;
+}
+
+#edit-item-form > div{
+    width: 100%;
+    box-sizing: border-box;
+    padding: .5rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: white;
+}
+
+.form-action-btn-div> button, .form-action-btn-div > input[type="submit"]{
+    width: 40%;
+    font-size: 1.25rem;
+}
+
+.form-label-style{
+    font-size: 1.25em;
+}
+
+.form-input-style{
+    border: none;
+    background-color: #e3dfef;
+    font-size: 1.25em;
+    width: 50%;
 }
