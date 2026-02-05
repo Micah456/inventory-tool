@@ -129,3 +129,21 @@ button:disabled, input[type="submit"]:disabled{
 #item-table-div > h2 {
     margin-bottom: .25rem;
 }
+
+.adjust-count-btn{
+    border-radius: 20px;
+    width: 5vw;
+    height: 5vw;
+    position: absolute;
+    top: 54vh;
+    padding: 0;
+    visibility: hidden;
+}
+
+#dec-btn{
+    left: 4vw;
+}
+
+#inc-btn{
+    right: 4vw;
+}
