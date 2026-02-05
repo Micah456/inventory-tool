@@ -363,7 +363,10 @@ function addNewItem(itemName, itemCount){
         const data = JSON.parse(localStorage.getItem(appDataKey))
         const inventories = data['inventories']
         const invIndex = findIndexOfInventory(inventories, invName, invDate)
-        console.log(invIndex)
+        //Check if item exists
+        if(findIndexOfItemNameOnly(inventories[invIndex]['items'], itemName) != -1){//Exists
+            throw new Error(`${itemName} already exists in ${invName}`)
+        }
         //Push new item into inventory
         data['inventories'][invIndex]['items'].push(item)
         console.log(data['inventories'])
@@ -460,6 +463,16 @@ function findIndexOfItem(itemArray, itemName, itemCount){
     return -1
 }
 
+function findIndexOfItemNameOnly(itemArray, itemName){
+    //Case insensitive
+    for(let i = 0; i < itemArray.length; i++){
+        if((itemArray[i].name).toLowerCase() === itemName.toLowerCase()){
+            return i
+        }
+    }
+    return -1
+}
+
 function renameInventory(){
     const row = findSelectedRow(true)
     const invName = row.firstChild.textContent
@@ -503,6 +516,11 @@ function editItem(itemName, itemCount){
             Updating name from ${oldItemName} to ${itemName}\n
             Updating count from ${oldItemCount} to ${itemCount}
         `)
+        //If oldName and newName are different AND new item name already exists in inv
+        if(!(oldItemName.toLowerCase() === itemName.toLowerCase()) && findIndexOfItemNameOnly(inventories[invIndex]['items'], itemName) != -1){
+            throw new Error(`${itemName} already exists in ${invName}`)
+        }
+        
         //Update both values
         data['inventories'][invIndex]['items'][itemIndex]['name'] = itemName
         data['inventories'][invIndex]['items'][itemIndex]['count'] = itemCount
@@ -519,7 +537,6 @@ function editItem(itemName, itemCount){
         console.log(error.stack)
         editingRow = null
     }
-
 }
 
 function toggleRow(trElement, inventoryTable){
