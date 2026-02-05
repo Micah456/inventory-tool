@@ -4,7 +4,34 @@ let delInvBtnEl
 let renInvBtnEl
 let delItemBtnEl
 let editItemBtnEl
+let invTitleEl
+let datePEl
 const mainEl = document.getElementById('main')
+const itemNameInputEl = document.getElementById("item-name-input")
+const itemCountInputEl = document.getElementById("item-count-input")
+const editItemFormEl = document.getElementById("edit-item-form")
+const editItemCancelBtnEl = document.getElementById("edit-item-cancel-btn")
+const editItemDivEl = document.getElementById("edit-item-div")
+
+editItemCancelBtnEl.addEventListener('click', (e) =>{
+    toggleEditItemDivVisibility(false)
+    e.preventDefault()
+    editItemFormEl.reset()
+})
+
+editItemFormEl.addEventListener("submit", (e) => {
+    e.preventDefault()
+    toggleEditItemDivVisibility(false)
+    //todo Can I get input values from the form item or submit event?
+    const data = new FormData(editItemFormEl)
+    const dataArray = []
+    for (const [name,value] of data) {
+        dataArray.push(value)
+    }
+    addNewItem(dataArray[0], dataArray[1])
+    editItemFormEl.reset()
+})
+
 const defaultAppData = {
     inventories: []
 }
@@ -57,7 +84,11 @@ function createItemListDiv(invName, invDate){
     div.id = "item-table-div"
     //Create h2
     const h2 = document.createElement("h2")
+    invTitleEl = h2
     h2.textContent = invName
+    const dateP = document.createElement("p")
+    datePEl = dateP
+    dateP.textContent = invDate
     //Create table
     const table = document.createElement("table")
     table.id = "item-table"
@@ -88,6 +119,7 @@ function createItemListDiv(invName, invDate){
     returnA.textContent = "Return to Inventory List"
     //Append all children elements
     div.appendChild(h2)
+    div.appendChild(dateP)
     div.appendChild(table)
     div.appendChild(createItemListActionBtnDiv())
     div.appendChild(returnA)
@@ -167,7 +199,9 @@ function createItemListActionBtnDiv(){
     //Create addNewInvBtn
     const addNewItemBtn = document.createElement('button')
     addNewItemBtn.textContent = "Add New Item"
-    addNewItemBtn.addEventListener('click', addNewItem)
+    addNewItemBtn.addEventListener('click', () => {
+        toggleEditItemDivVisibility(true)
+    })
     //Create delItemBtn
     const delItemBtn = document.createElement('button')
     delItemBtnEl = delItemBtn
@@ -244,8 +278,56 @@ function addNewInventory(){
     
 }
 
-function addNewItem(){
-    console.log("Creating new item - to be implemented")
+/**
+ * Toggle visibility of edit item div 
+ * @param makeVisible boolean. Set this to true if you want to open the div 
+ */
+function toggleEditItemDivVisibility(makeVisible){
+    if(makeVisible){// Opening div
+        if (editItemDivEl.style.visibility === "hidden") {// If hidden
+        editItemDivEl.style.visibility = "visible"; // Make visible
+        }
+    }else{//Closing div
+        if (editItemDivEl.style.visibility === "visible") {// If visible
+        editItemDivEl.style.visibility = "hidden"; // Hide
+        }
+    }
+    
+}
+
+function addNewItem(itemName, itemCount){
+    try{
+        //Define inventory items
+        const invName = invTitleEl.textContent
+        const invDate = datePEl.textContent
+        //Process values
+        itemName.trim()
+        itemCount = Number(itemCount)
+        //Validate values
+        if(itemName && itemCount >= 0){
+            //Create item obj
+            const item = {
+                name: itemName,
+                count: itemCount
+            }
+            console.log(item)
+            //Find inventory index
+            const data = JSON.parse(localStorage.getItem(appDataKey))
+            const inventories = data['inventories']
+            const invIndex = findIndexOfInventory(inventories, invName, invDate)
+            console.log(invIndex)
+            //Push new item into inventory
+            data['inventories'][invIndex]['items'].push(item)
+            console.log(data['inventories'])
+            //Update local storage
+            localStorage.setItem(appDataKey, JSON.stringify(data))
+            //Update itemTable
+            displayMain(createItemListDiv(invName, invDate))
+        }
+    }catch(error){
+        alert("An error occured: " + error.message)
+    }
+    
 }
 
 function formatDate(date){
