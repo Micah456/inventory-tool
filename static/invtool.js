@@ -141,7 +141,7 @@ function createItemListDiv(invName, invDate){
     //Append table header row to table
     table.appendChild(trHeader)
     //Get inv items
-    const inventories = JSON.parse(localStorage.getItem(appDataKey))['inventories'] //array
+    const inventories = getData()['inventories'] //array
     const invIndex = findIndexOfInventory(inventories, invName, invDate)
     const items = inventories[invIndex]['items'] //array
     //Create and append table rows to table
@@ -185,7 +185,7 @@ function createInventoryListDiv(){
     //Append table header row to table
     table.appendChild(trHeader)
     //Create and append table rows to table
-    const inventories = JSON.parse(localStorage.getItem(appDataKey))['inventories'] //array
+    const inventories = getData()['inventories'] //array
     inventories.forEach((invObj) => {
         table.appendChild(createTableRowElement(invObj, true))
     })
@@ -322,7 +322,7 @@ function addNewInventory(){
             date: formatDate(new Date()),
             items: []
         }
-        const data = JSON.parse(localStorage.getItem(appDataKey))
+        const data = getData()
         data['inventories'].push(inventory)
         localStorage.setItem(appDataKey, JSON.stringify(data))
         //Reload inventory table
@@ -360,7 +360,7 @@ function addNewItem(itemName, itemCount){
         }
         console.log(item)
         //Find inventory index
-        const data = JSON.parse(localStorage.getItem(appDataKey))
+        const data = getData()
         const inventories = data['inventories']
         const invIndex = findIndexOfInventory(inventories, invName, invDate)
         //Check if item exists
@@ -391,7 +391,7 @@ function deleteInventory(){
     const invDate = row.lastChild.textContent
     if(confirm(`Are you sure you want to delete ${invName} (${invDate})?`)){
         console.log(`Delecting inventory name: ${invName}`)
-        const data = JSON.parse(localStorage.getItem(appDataKey))
+        const data = getData()
         console.log(data)
         const inventories = data['inventories']
         console.log(inventories)
@@ -413,7 +413,7 @@ function deleteItem(){
     //Find inventory index
     const invName = invTitleEl.textContent
     const invDate = datePEl.textContent
-    const data = JSON.parse(localStorage.getItem(appDataKey))
+    const data = getData()
     const invIndex = findIndexOfInventory(data['inventories'], invName, invDate)
     //Find item index
     const inv = data['inventories'][invIndex]
@@ -454,6 +454,14 @@ function findIndexOfInventory(invArray, invName, invDate){
     return -1
 }
 
+/**
+ * Gets app data stored in localstorage
+ * @returns {Object} data object. Use ['inventories'] to get the inv list
+ */
+function getData(){
+    return JSON.parse(localStorage.getItem(appDataKey))
+}
+
 function findIndexOfItem(itemArray, itemName, itemCount){
     for(let i = 0; i < itemArray.length; i++){
         if(itemArray[i].name === itemName && itemArray[i].count == itemCount){
@@ -480,7 +488,7 @@ function renameInventory(){
     const newName = (prompt(`What would you like to rename ${invName} to?`)).trim()
     if(newName){
         console.log(`Renaming ${invName} inventory to ${newName} `)
-        const data = JSON.parse(localStorage.getItem(appDataKey))
+        const data = getData()
         const inventories = data['inventories']
         const invIndex = findIndexOfInventory(inventories, invName, invDate)
         if(invIndex >= 0){
@@ -500,7 +508,7 @@ function editItem(itemName, itemCount){
         const invName = invTitleEl.textContent
         const invDate = datePEl.textContent
         //Find inventory index
-        const data = JSON.parse(localStorage.getItem(appDataKey))
+        const data = getData()
         const inventories = data['inventories']
         const invIndex = findIndexOfInventory(inventories, invName, invDate)
         //Define original item
@@ -657,7 +665,7 @@ function adjustCount(increment){
     //Find inventory index
     const invName = invTitleEl.textContent
     const invDate = datePEl.textContent
-    const data = JSON.parse(localStorage.getItem(appDataKey))
+    const data = getData()
     const invIndex = findIndexOfInventory(data['inventories'], invName, invDate)
     //Find item index
     const inv = data['inventories'][invIndex]
