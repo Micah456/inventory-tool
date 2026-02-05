@@ -255,7 +255,10 @@ function createTableRowElement(dataObj, inventoryTable){
         toggleRow(tr, inventoryTable)
     })
     tr.addEventListener('dblclick', (e) => {
-        openInventory(tr)
+        if(inventoryTable){
+            openInventory(tr)
+        }
+        
     })
     return tr
 }
