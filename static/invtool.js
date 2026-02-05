@@ -12,6 +12,8 @@ const itemCountInputEl = document.getElementById("item-count-input")
 const editItemFormEl = document.getElementById("edit-item-form")
 const editItemCancelBtnEl = document.getElementById("edit-item-cancel-btn")
 const editItemDivEl = document.getElementById("edit-item-div")
+const decBtnEl = document.getElementById("dec-btn")
+const incBtnEl = document.getElementById("inc-btn")
 
 editItemCancelBtnEl.addEventListener('click', (e) =>{
     toggleEditItemDivVisibility(false)
@@ -31,6 +33,15 @@ editItemFormEl.addEventListener("submit", (e) => {
     addNewItem(dataArray[0], dataArray[1])
     editItemFormEl.reset()
 })
+
+incBtnEl.addEventListener('click', () => {
+    adjustCount(true)
+})
+
+decBtnEl.addEventListener('click', () => {
+    adjustCount(false)
+})
+
 
 const defaultAppData = {
     inventories: []
@@ -76,10 +87,13 @@ const testData = {
     ]
 }
 
+/**
+ * Creates the ItemListDiv holding the item table
+ * @param {String} invName inventoy name
+ * @param {String} invDate inventory creation date
+ * @returns {div} div to append to main to display on page
+ */
 function createItemListDiv(invName, invDate){
-    //Creates the ItemListDiv holding the item table
-    //invName and invDate are used to find the inv data
-    //Returns the div to append to main to display on page
     const div = document.createElement("div")
     div.id = "item-table-div"
     //Create h2
@@ -162,8 +176,12 @@ function createInventoryListDiv(){
     return div
 }
 
+/**
+ * Creates the action button div accompanying the inventory
+ * list
+ * @returns the created action button div 
+ */
 function createInvListActionBtnDiv(){
-    //Returns actionbtndiv for invlist
     //Create actionBtnDiv
     const actionBtnDiv = document.createElement('div')
     actionBtnDiv.className = "action-btn-div"
@@ -191,6 +209,11 @@ function createInvListActionBtnDiv(){
     return actionBtnDiv
 }
 
+/**
+ * Creates the action button div accompanying the item
+ * list
+ * @returns the created action button div 
+ */
 function createItemListActionBtnDiv(){
     //Returns actionbtndiv for itemlist
     //Create actionBtnDiv
@@ -227,13 +250,17 @@ function displayMain(divEl){
     mainEl.appendChild(divEl)
 }
 
-
+/**
+ * Creates and returns individual table row elements
+ * containing row data for the inventory or item table
+ * @param {Object} dataObj Object containing data for
+ * table row
+ * @param {boolean} inventoryTable checks which table the row
+ * is being created for. true if inventory table, false if
+ * item table
+ * @returns the created table row element
+ */
 function createTableRowElement(dataObj, inventoryTable){
-    //Creates and returns tr element
-    //dataObj is the object containing row data
-    //inventoryTable bool checks if table is invtable (true)
-    //or itemTable (false)
-
     //Set headers
     const header1 = 'name'
     let header2 = 'date' 
@@ -255,7 +282,10 @@ function createTableRowElement(dataObj, inventoryTable){
         toggleRow(tr, inventoryTable)
     })
     tr.addEventListener('dblclick', (e) => {
-        openInventory(tr)
+        if(inventoryTable){
+            openInventory(tr)
+        }
+        
     })
     return tr
 }
@@ -375,6 +405,15 @@ function findIndexOfInventory(invArray, invName, invDate){
     return -1
 }
 
+function findIndexOfItem(itemArray, itemName, itemCount){
+    for(let i = 0; i < itemArray.length; i++){
+        if(itemArray[i].name === itemName && itemArray[i].count === itemCount){
+            return i
+        }
+    }
+    return -1
+}
+
 function renameInventory(){
     const row = findSelectedRow(true)
     const invName = row.firstChild.textContent
@@ -409,15 +448,52 @@ function toggleRow(trElement, inventoryTable){
     if(rowSelected(trElement)){ //selected
         //Deselect
         trElement.classList.remove("row-selected")
-        delInvBtnEl.disabled = true
-        renInvBtnEl.disabled = true
+        //Disable action buttons
+        if(inventoryTable){
+            delInvBtnEl.disabled = true
+            renInvBtnEl.disabled = true 
+        }else{
+            delItemBtnEl.disabled = true
+            editItemBtnEl.disabled = true
+            //Hide adjust count buttons
+            incBtnEl.style.visibility = "hidden"
+            decBtnEl.style.visibility = "hidden"
+        }
+        
     }
     else{ //not selected
         //Delesecting all other rows
         deselectAllRows(inventoryTable)
+        //Select this row
         trElement.classList.add("row-selected")
-        delInvBtnEl.disabled = false
-        renInvBtnEl.disabled = false
+        //Enable action buttons
+        if(inventoryTable){
+            delInvBtnEl.disabled = false
+            renInvBtnEl.disabled = false
+        }else{
+            delItemBtnEl.disabled = false
+            editItemBtnEl.disabled = false
+            //Get rowElement position
+            const rect = trElement.getBoundingClientRect()
+            
+            //Adjust potition of count buttons
+            const newTop = rect.top + window.scrollY
+            incBtnEl.style.top = `calc(${newTop}px - .5rem)`
+            decBtnEl.style.top = `calc(${newTop}px - .5rem)`
+            //Check if count is > 0
+            const count = Number(trElement.lastChild.textContent)
+            console.log(`Count is ${count}`)
+            console.log(`It is ${count == 0} that count is 0`)
+            if(count == 0){
+                decBtnEl.disabled = true
+            }else{
+                decBtnEl.disabled = false
+            }
+            //Show adjust count buttons
+            incBtnEl.style.visibility = "visible"
+            decBtnEl.style.visibility = "visible"
+        }
+        
     }
 }
 
@@ -464,6 +540,43 @@ function findSelectedRow(inventoryTable){
         }
     }
     return null
+}
+
+/**
+ * 
+ * @param increment bool - when true, will increment value.
+ * False will decrement value 
+ */
+function adjustCount(increment){
+    //Find selected row
+    const row = findSelectedRow(false)
+    const itemName = row.firstChild.textContent
+    const itemCount = Number(row.lastChild.textContent)
+    //Find inventory index
+    const invName = invTitleEl.textContent
+    const invDate = datePEl.textContent
+    const data = JSON.parse(localStorage.getItem(appDataKey))
+    const invIndex = findIndexOfInventory(data['inventories'], invName, invDate)
+    //Find item index
+    const inv = data['inventories'][invIndex]
+    const itemIndex = findIndexOfItem(inv['items'], itemName, itemCount)
+    //Update count in localstorage
+    let newCount = itemCount
+    if(increment){
+        newCount++
+    }else{
+        newCount--
+    }
+    data['inventories'][invIndex]['items'][itemIndex]['count'] = newCount
+    localStorage.setItem(appDataKey, JSON.stringify(data))
+
+    //Reload item table
+    displayMain(createItemListDiv(invName, invDate))
+    //Reselect row on rebuilt table
+    //Find row on new table
+    const rebuiltRow = itemTableEl.children.item(itemIndex + 1)
+    //Toggle row
+    toggleRow(rebuiltRow)
 }
 
 //Check Local Storage for data
