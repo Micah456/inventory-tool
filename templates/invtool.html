@@ -72,7 +72,7 @@
                 </div>
             </div>
         </main>
-        <div id="edit-item-div">
+        <div id="edit-item-div" style="visibility: hidden;">
             <form id="edit-item-form">
                 <div class="form-input-field-div">
                     <label class="form-label-style" for="item-name-input">Item Name</label>
@@ -83,7 +83,7 @@
                     <input class="form-input-style" type="number" id="item-count-input" name="item-count-input" required>
                 </div>
                 <div class="form-action-btn-div">
-                    <button id="edit-item-cancel-btn">Cancel</button>
+                    <button id="edit-item-cancel-btn" formnovalidate>Cancel</button>
                     <input type="submit" value="Save" id="save-item-btn">
                 </div>
             </form>

@@ -121,3 +121,11 @@ button:disabled, input[type="submit"]:disabled{
     font-size: 1.25em;
     width: 50%;
 }
+
+#item-table-div > p {
+    margin: 0;
+}
+
+#item-table-div > h2 {
+    margin-bottom: .25rem;
+}
