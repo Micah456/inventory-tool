@@ -412,15 +412,30 @@ function toggleRow(trElement, inventoryTable){
     if(rowSelected(trElement)){ //selected
         //Deselect
         trElement.classList.remove("row-selected")
-        delInvBtnEl.disabled = true
-        renInvBtnEl.disabled = true
+        //Disable action buttons
+        if(inventoryTable){
+            delInvBtnEl.disabled = true
+            renInvBtnEl.disabled = true 
+        }else{
+            delItemBtnEl.disabled = true
+            editItemBtnEl.disabled = true
+        }
+        
     }
     else{ //not selected
         //Delesecting all other rows
         deselectAllRows(inventoryTable)
+        //Select this row
         trElement.classList.add("row-selected")
-        delInvBtnEl.disabled = false
-        renInvBtnEl.disabled = false
+        //Enable action buttons
+        if(inventoryTable){
+            delInvBtnEl.disabled = false
+            renInvBtnEl.disabled = false
+        }else{
+            delItemBtnEl.disabled = false
+            editItemBtnEl.disabled = false
+        }
+        
     }
 }
 
