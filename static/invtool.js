@@ -14,8 +14,12 @@ const editItemCancelBtnEl = document.getElementById("edit-item-cancel-btn")
 const editItemDivEl = document.getElementById("edit-item-div")
 const decBtnEl = document.getElementById("dec-btn")
 const incBtnEl = document.getElementById("inc-btn")
+let editing = false
+let editingRow = null
 
 editItemCancelBtnEl.addEventListener('click', (e) =>{
+    editing = false
+    editingRow = null
     toggleEditItemDivVisibility(false)
     e.preventDefault()
     editItemFormEl.reset()
@@ -23,15 +27,32 @@ editItemCancelBtnEl.addEventListener('click', (e) =>{
 
 editItemFormEl.addEventListener("submit", (e) => {
     e.preventDefault()
-    toggleEditItemDivVisibility(false)
-    //todo Can I get input values from the form item or submit event?
+    //Retrieve item name and count from form
     const data = new FormData(editItemFormEl)
     const dataArray = []
     for (const [name,value] of data) {
         dataArray.push(value)
     }
-    addNewItem(dataArray[0], dataArray[1])
-    editItemFormEl.reset()
+    const itemName = dataArray[0].trim()
+    const itemCount = Number(dataArray[1])
+    //Validate item name
+    if(!itemName){//Name invalid
+        alert("Item name should not be blank")
+    }
+    else{//Name is valid
+        //Hide form
+        toggleEditItemDivVisibility(false)
+        //Reset the form
+        editItemFormEl.reset()
+        //Check if editing
+        if(editing){//Editing existing item
+            editing = false
+            editItem(itemName, itemCount)
+        }else{//Adding new item
+            addNewItem(itemName, itemCount)
+        }
+    }
+    
 })
 
 incBtnEl.addEventListener('click', () => {
@@ -223,6 +244,8 @@ function createItemListActionBtnDiv(){
     const addNewItemBtn = document.createElement('button')
     addNewItemBtn.textContent = "Add New Item"
     addNewItemBtn.addEventListener('click', () => {
+        editing = false
+        editingRow = null
         toggleEditItemDivVisibility(true)
     })
     //Create delItemBtn
@@ -235,7 +258,7 @@ function createItemListActionBtnDiv(){
     const editItemBtn = document.createElement('button')
     editItemBtnEl = editItemBtn
     editItemBtn.textContent = "Edit Item"
-    editItemBtn.addEventListener('click', editItem)
+    editItemBtn.addEventListener('click', openEditDivForEdit)
     editItemBtn.disabled = true
     //Append children elements
     actionBtnDiv.appendChild(addNewItemBtn)
@@ -330,30 +353,24 @@ function addNewItem(itemName, itemCount){
         //Define inventory items
         const invName = invTitleEl.textContent
         const invDate = datePEl.textContent
-        //Process values
-        itemName.trim()
-        itemCount = Number(itemCount)
-        //Validate values
-        if(itemName && itemCount >= 0){
-            //Create item obj
-            const item = {
-                name: itemName,
-                count: itemCount
-            }
-            console.log(item)
-            //Find inventory index
-            const data = JSON.parse(localStorage.getItem(appDataKey))
-            const inventories = data['inventories']
-            const invIndex = findIndexOfInventory(inventories, invName, invDate)
-            console.log(invIndex)
-            //Push new item into inventory
-            data['inventories'][invIndex]['items'].push(item)
-            console.log(data['inventories'])
-            //Update local storage
-            localStorage.setItem(appDataKey, JSON.stringify(data))
-            //Update itemTable
-            displayMain(createItemListDiv(invName, invDate))
+        //Create item obj
+        const item = {
+            name: itemName,
+            count: itemCount
         }
+        console.log(item)
+        //Find inventory index
+        const data = JSON.parse(localStorage.getItem(appDataKey))
+        const inventories = data['inventories']
+        const invIndex = findIndexOfInventory(inventories, invName, invDate)
+        console.log(invIndex)
+        //Push new item into inventory
+        data['inventories'][invIndex]['items'].push(item)
+        console.log(data['inventories'])
+        //Update local storage
+        localStorage.setItem(appDataKey, JSON.stringify(data))
+        //Update itemTable
+        displayMain(createItemListDiv(invName, invDate))
     }catch(error){
         alert("An error occured: " + error.message)
     }
@@ -407,7 +424,7 @@ function findIndexOfInventory(invArray, invName, invDate){
 
 function findIndexOfItem(itemArray, itemName, itemCount){
     for(let i = 0; i < itemArray.length; i++){
-        if(itemArray[i].name === itemName && itemArray[i].count === itemCount){
+        if(itemArray[i].name === itemName && itemArray[i].count == itemCount){
             return i
         }
     }
@@ -433,8 +450,47 @@ function renameInventory(){
     }
 }
 
-function editItem(){
-    console.log("Edit item to be implemented")
+function editItem(itemName, itemCount){
+    //editingRow give the row element being edited
+    console.log("Updating item")
+    try{
+        //Define inventory
+        const invName = invTitleEl.textContent
+        const invDate = datePEl.textContent
+        //Find inventory index
+        const data = JSON.parse(localStorage.getItem(appDataKey))
+        const inventories = data['inventories']
+        const invIndex = findIndexOfInventory(inventories, invName, invDate)
+        //Define original item
+        const oldItemName = editingRow.firstChild.textContent
+        const oldItemCount = editingRow.lastChild.textContent
+        //Nullify editingRow
+        editingRow = null
+        //Find original item index
+        const itemIndex = findIndexOfItem(inventories[invIndex]['items'], oldItemName, oldItemCount)
+        console.log(`
+            Inv index: ${invIndex}\n
+            Item index: ${itemIndex}\n
+            Updating name from ${oldItemName} to ${itemName}\n
+            Updating count from ${oldItemCount} to ${itemCount}
+        `)
+        //Update both values
+        data['inventories'][invIndex]['items'][itemIndex]['name'] = itemName
+        data['inventories'][invIndex]['items'][itemIndex]['count'] = itemCount
+        console.log(data['inventories'])
+        //Update local storage
+        localStorage.setItem(appDataKey, JSON.stringify(data))
+        //Update itemTable
+        displayMain(createItemListDiv(invName, invDate))
+        //Hide adjust count buttons
+        incBtnEl.style.visibility = "hidden"
+        decBtnEl.style.visibility = "hidden"
+    }catch(error){
+        alert("An error occured: " + error.message)
+        console.log(error.stack)
+        editingRow = null
+    }
+
 }
 
 function toggleRow(trElement, inventoryTable){
@@ -577,6 +633,20 @@ function adjustCount(increment){
     const rebuiltRow = itemTableEl.children.item(itemIndex + 1)
     //Toggle row
     toggleRow(rebuiltRow)
+}
+
+function openEditDivForEdit(){
+    //Toggle editing marker
+    editing = true
+    //Set editingRow
+    editingRow = findSelectedRow(false)
+    //Populate form with existing item data
+    const itemName = editingRow.firstChild.textContent
+    const itemCount = editingRow.lastChild.textContent
+    document.getElementById("item-name-input").value = itemName
+    document.getElementById("item-count-input").value = itemCount
+    //Show edit item div
+    toggleEditItemDivVisibility(true)
 }
 
 //Check Local Storage for data
