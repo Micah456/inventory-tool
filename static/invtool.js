@@ -403,7 +403,36 @@ function deleteInventory(){
 }
 
 function deleteItem(){
-    console.log("Implement delete item")
+    //Find selected row
+    const row = findSelectedRow(false)
+    const itemName = row.firstChild.textContent
+    const itemCount = row.lastChild.textContent
+    //Find inventory index
+    const invName = invTitleEl.textContent
+    const invDate = datePEl.textContent
+    const data = JSON.parse(localStorage.getItem(appDataKey))
+    const invIndex = findIndexOfInventory(data['inventories'], invName, invDate)
+    //Find item index
+    const inv = data['inventories'][invIndex]
+    const itemIndex = findIndexOfItem(inv['items'], itemName, itemCount)
+    //Check user wants to delete
+    if(confirm(`Are you sure you want to delete ${itemName}?`)){
+        console.log(`Deleting item: ${itemName}`)
+        if(invIndex >= 0 && itemIndex >= 0){
+            console.log(data['inventories'][invIndex]['items'])
+            data['inventories'][invIndex]['items'].splice(itemIndex, 1)
+            console.log(data['inventories'][invIndex]['items'])
+            localStorage.setItem(appDataKey, JSON.stringify(data))
+            //Update itemTable
+            displayMain(createItemListDiv(invName, invDate))
+            //Hide adjust count buttons
+            incBtnEl.style.visibility = "hidden"
+            decBtnEl.style.visibility = "hidden"
+        }else{
+            alert("An error occurred: could not find inventory or item. Check the logs")
+        }
+    }
+
 }
 
 function openInventory(rowElement){
